@@ -153,6 +153,14 @@ public class SimParam implements Vec2d.Size, Vec3d.Size {
 	sp.otf( otf, otf3d );
 	return sp;
     }
+    
+    public static SimParam append3d(SimParam sp, int bands, int dirs, int phases, 
+    		int latsize, int axsize, double micronsPerPxl, double micronsPerSlice, 
+    		OtfProvider otf, OtfProvider3D otf3d ) {
+    		sp.setPxlSize3d( latsize, axsize, micronsPerPxl, micronsPerSlice );
+    		sp.otf( otf, otf3d );
+    		return sp;
+    }
    
     /** Copy an existing SimParam dataset */
     public SimParam duplicate() {
@@ -280,6 +288,8 @@ public class SimParam implements Vec2d.Size, Vec3d.Size {
 	stackSize = stack;
 	micronsPerSlice=micronStack;
 	cyclesPerMicronInZ = 1/(stack*micronStack);
+	System.out.println("z stack = " + stack);
+	System.out.println("z dz = " + micronStack);
 	this.otf( currentOtf2D, currentOtf3D);
 	return this;
     }

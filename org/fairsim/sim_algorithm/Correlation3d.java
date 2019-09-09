@@ -71,6 +71,7 @@ public class Correlation3d {
 	    // store all correlations
 	    final Cplx.Double [][] corr = new Cplx.Double[10][10];
 	    final Cplx.Double scal = new Cplx.Double(1. /  b0.norm2()  ); // for corr. normalization
+	    System.out.println("b0.norm2 = " + b0.norm2());
 	    double max=0,min=Double.MAX_VALUE; 
 	    double newKx=0, newKy=0, newKz=0;
 
@@ -126,12 +127,13 @@ public class Correlation3d {
 	    
 			// copy and Fourier-shift band1
 			Vec3d.Cplx b1s = b1.duplicate();
-			b1s.fourierShift( xpos, -ypos, zPosOffset);
+			b1s.fourierShift( -xpos, -ypos, zPosOffset);
 
 			// get correlation by multiplication, summing elements, scaling by b0
 			b1s.timesConj( b0 );
 			corr[xi][yi] = Cplx.mult( b1s.sumElements(), scal);
-			//Tool.trace("3D full: Correlation x "+xi+" y "+yi+" : "+corr[xi][yi].abs());
+			Tool.trace("3D full: Correlation x "+xi+" y "+yi+" : "+corr[xi][yi].abs());
+			Tool.trace("3D full: Position x "+xi+" y "+yi+" : "+ xpos + ", " + ypos);
 		    }
 		};
 	    } else {

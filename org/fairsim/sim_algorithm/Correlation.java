@@ -69,6 +69,7 @@ public class Correlation {
 	    // store all correlations
 	    final Cplx.Double [][] corr = new Cplx.Double[10][10];
 	    final Cplx.Double scal = new Cplx.Double(1. /  b0.norm2()  ); // for corr. normalization
+	    System.out.println("b0.norm2() = " + b0.norm2());
 	    double max=0,min=Double.MAX_VALUE; 
 	    double newKx=0, newKy=0;
 
@@ -89,7 +90,9 @@ public class Correlation {
 	
 		    // copy and Fourier-shift band1
 		    Vec2d.Cplx b1s = b1.duplicate();
+		    //System.out.println("norm1 = " + b1s.norm2());
 		    b1s.fourierShift( xpos, -ypos);
+		    //System.out.println("norm2 = " + b1s.norm2());
 
 		    // get correlation by multiplication, summing elements, scaling by b0
 		    b1s.timesConj( b0 );

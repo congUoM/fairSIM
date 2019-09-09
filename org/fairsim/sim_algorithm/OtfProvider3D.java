@@ -159,7 +159,7 @@ public class OtfProvider3D {
 	    throw new IllegalStateException("Vector pixel size not initialized");
 	final int w = vec.vectorWidth(), h = vec.vectorHeight(), d = vec.vectorDepth();
 
-	System.out.println(" Cycles: "+vecCyclesPerMicronLateral+" "+vecCyclesPerMicronAxial);
+	//System.out.println(" Cycles: "+vecCyclesPerMicronLateral+" "+vecCyclesPerMicronAxial);
 
 	// loop output vector
 	new SimpleMT.StrPFor(0,d) {
@@ -378,6 +378,7 @@ public class OtfProvider3D {
 
 	ret.cyclesPerMicronLateral = data.getDbl("cycles-lateral").val();
 	ret.cyclesPerMicronAxial   = data.getDbl("cycles-axial").val();
+	System.out.println("ret.cyclesPerMicronAxial" + ret.cyclesPerMicronAxial);
 
 	// calculate the cutoff
 	ret.calcCutOff();

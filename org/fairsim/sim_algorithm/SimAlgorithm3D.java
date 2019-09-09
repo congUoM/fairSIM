@@ -92,10 +92,10 @@ public class SimAlgorithm3D {
 	    inFFT[a][p] = Vec3d.createCplx(w,h,d);
 
 	    for (int z=0; z<d; z++) {
-		int pos = p + 5 * z + a * 5 * d; // TODO: Use SimUtils here?
-		Vec2d.Real img = inSt[pos].duplicate();
-		SimUtils.fadeBorderCos( img , 10);
-		inFFT[a][p].setSlice( z, img );
+			int pos = p + 5 * z + a * 5 * d; // TODO: Use SimUtils here?
+			Vec2d.Real img = inSt[pos].duplicate();
+			SimUtils.fadeBorderCos( img , 10);
+			inFFT[a][p].setSlice( z, img );
 	    }
 
 	    // input FFT
@@ -174,6 +174,8 @@ public class SimAlgorithm3D {
 
 		// get preset k0 vector value TODO: this only works for 3-band data
 		double [] peak = new double [] { param.dir(angIdx).px(2), param.dir(angIdx).py(2) };
+		System.out.println("peak 1:" + peak[0]);
+		System.out.println("peak 2:" + peak[1]);
 		double [] origPeak = new double [] { param.dir(angIdx).px(2), param.dir(angIdx).py(2) };
 		
 		// 1 - only run "find peak" if set so
@@ -241,108 +243,6 @@ public class SimAlgorithm3D {
 		    param.dir(angIdx).setModulation( 2, p2.hypot() );
 		}
 		
-		// ... or two-beam / 2 bands
-		if (lb==hb) {
-		    // get everything from one correlation band0 to band1
-		    Cplx.Double p1 = Correlation3d.getPeak( separate[0], separate[1], 
-			0, 1, otfPr, peak[0], peak[1], 0.05 );
-
-		    Tool.trace(
-			String.format("a%1d: FitPeak --> x %7.3f y %7.3f p %7.3f (m %7.3f)", 
-			angIdx, peak[0], peak[1], p1.phase(), p1.hypot() ));
-	    
-		    // store the result
-		    param.dir(angIdx).setPxPy(   -peak[0], -peak[1] );
-		    param.dir(angIdx).setPhaOff( p1.phase() );
-		    param.dir(angIdx).setModulation( 1, p1.hypot() );
-		}
-
-
-		// --- output visual feedback of peak fit ---
-		/*
-		if (visualFeedback>0) {
-		    
-		    // mark region excluded from peak finder
-		    // output the peaks found, with circles marking them, and the fit result in
-		    // the top corner for the correlation band0<->band2
-		    ImageDisplay.Marker excludedDC = 
-			new ImageDisplay.Marker(w/2,h/2,minDist*2,minDist*2,true);
-		    
-		    Vec2d.Real fittedPeak = SimUtils.pwSpec( c2 );
-		    fittedPeak.paste( cntrl, 0, 0, false );
-		   
-		    
-		    pwSt.addImage( fittedPeak, "dir "+angIdx+" c-corr band 0<>high" );
-		    pwSt.addImage( SimUtils.pwSpec( c1 ), "dir "+angIdx+" c-corr band 0<>low");
-		    
-		    pwSt.addImage( fittedPeak, "dir "+angIdx+" c-corr band 0<>high",
-		    	new ImageDisplay.Marker( w/2-peak[0], h/2+peak[1], 10, 10, true),
-		    	excludedDC);
-		    
-		    // if there is a low band, also add it
-		    if ((visualFeedback>1)&&(lb!=hb))
-			pwSt.addImage( SimUtils.pwSpec( c1 ), "dir "+angIdx+" c-corr band 0<>low",
-			    new ImageDisplay.Marker( w/2-peak[0]/2, h/2+peak[1]/2, 10, 10, true));
-		} 
-		*/  
-
-		// --- output visual feedback of overlapping regions (for all bands) ---
-		/*
-		if (visualFeedback>1)  
-		for (int b=1; b<param.nrBand(); b++) {	
-		
-		    SimParam.Dir par = param.dir(angIdx);
-
-		    // find common regions in low and high band
-		    Vec3d.Cplx b0 = separate[0  ].duplicate();
-		    Vec3d.Cplx b1 = separate[2*b].duplicate();
-		
-		    Correlation3d.commonRegion( b0, b1, 0, b, otfPr,  
-		        par.px(b), par.py(b), 0.15, (b==1)?(.2):(.05), true);
-
-		    // move the high band to its correct position
-		    b1.fft3d( true );
-		    b1.fourierShift( par.px(b), -par.py(b),0 );
-		    b1.fft3d( false );
-	    
-		    // apply phase correction
-		    b1.scal( Cplx.Float.fromPhase( param.dir(angIdx).getPhaOff()*b ));
-	   
-		    // output the full shifted bands
-		    if ( visualFeedback>2 )  {
-			// only add band0 once	
-			if ( b==1 ) {
-			    Vec3d.Cplx btmp = separate[0].duplicate();
-			    //otfPr2D.maskOtf( btmp, 0, 0);
-			    pwSt.addImage(SimUtils.pwSpec( btmp ), String.format(
-				"a%1d: full band0", angIdx, b ));
-			}
-
-			// add band1, band2, ...
-			Vec3d.Cplx btmp = separate[2*b].duplicate();
-			btmp.fft3d( true );
-			btmp.fourierShift(par.px(b), -par.py(b),0 );
-			btmp.fft3d( false );
-			//otfPr2D.maskOtf( btmp, par.px(b), par.py(b));
-
-			pwSt.addImage(SimUtils.pwSpec( btmp ), String.format( 
-			    "a%1d: full band%1d (shifted %7.3f %7.3f)",
-			    angIdx,  b, par.px(b), par.py(b))); 
-		    }
-
-		    // output power spectra of common region
-		    pwSt.addImage(SimUtils.pwSpec( b0 ), String.format(
-			"a%1d: common region b0<>b%1d, band0", angIdx, b )); 
-		    pwSt.addImage(SimUtils.pwSpec( b1 ), String.format( 
-			"a%1d: common region b0<>b%1d, band%1d",angIdx, b, b)); 
-
-		    // output spatial representation of common region
-		    spSt.addImage(SimUtils.spatial( b0 ), String.format(
-			"a%1d: common region b0<>b%1d, band0", angIdx, b )); 
-		    spSt.addImage(SimUtils.spatial( b1 ), String.format( 
-			"a%1d: common region b0<>b%1d, band%1d",angIdx, b, b)); 
-		}
-		*/
 	    }
 	
 	}
