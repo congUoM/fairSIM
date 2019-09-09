@@ -50,26 +50,26 @@ public class TestPlugin implements PlugIn {
     int nrDirs   = 3;		    // #angles or pattern orientations
     int nrPhases = 5;		    // #phases (at least 2*bands -1 )
 
-    double emWavelen = 560;	    // emission wavelength		    
+    double emWavelen = 680;	    // emission wavelength		    
     double otfNA     = 1.4;	    // NA of objective
-    double otfCorr   = 0.31;	    // OTF correction factor
+    double otfCorr   = 0.30;	    // OTF correction factor
     double pxSize    = 0.080;	    // pixel size (microns)
 
     double wienParam   = 0.05;	    // Wiener filter parameter
     double attStrength = 0.995;	    // Strength of attenuation
     double attFWHM     = 1.2;	    // FWHM of attenuation (cycles/micron)
-    boolean doAttenuation = true;  // use attenuation?
+    boolean doAttenuation = false;  // use attenuation?
 
     boolean otfBeforeShift = true;  // multiply the OTF before or after shift to px,py
 
-    boolean findPeak    = false;	    // run localization and fit of shfit vector
-    boolean refinePhase = false;    // run auto-correlation phase estimation (Wicker et. al)
+    boolean findPeak    = true;	    // run localization and fit of shfit vector
+    boolean refinePhase = true;    // run auto-correlation phase estimation (Wicker et. al)
 	
-    final int visualFeedback = 2;   // amount of intermediate results to create (-1,0,1,2,3)
+    final int visualFeedback = -1;   // amount of intermediate results to create (-1,0,1,2,3)
     boolean doFastShift = true;     // use the fast fourier shift impl. or standard
     final double apoB=.9, apoF=2; // Bend and mag. factor of APO
 
-    final float background = 200;   // subtract constant background
+    final float background = 350;   // subtract constant background
 
 
     /** Called by Fiji to start the plugin. 

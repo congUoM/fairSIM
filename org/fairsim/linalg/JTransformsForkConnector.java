@@ -19,7 +19,9 @@ along with fairSIM.  If not, see <http://www.gnu.org/licenses/>
 package org.fairsim.linalg;
 import org.fairsim.utils.Tool;
 
-import org.fairsim.extern.jtransforms.*; 
+import org.jtransforms.fft.FloatFFT_1D;
+import org.jtransforms.fft.FloatFFT_2D;
+import org.jtransforms.fft.FloatFFT_3D; 
 
 class JTransformsForkConnector extends FftProvider {
 

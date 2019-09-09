@@ -55,9 +55,9 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 560;	    // emission wavelength		    
+	double emWavelen = 680;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
-	double otfCorr   = 0.31;    // OTF correction factor
+	double otfCorr   = 0.3;    // OTF correction factor
 	
 	OtfProvider otf = OtfProvider.fromEstimate( otfNA, emWavelen, otfCorr ); 
 	
@@ -135,8 +135,8 @@ public class StepByStep implements PlugIn {
 
 	// Wiener filtering: set filter parameters
 	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
-	simParam.setApoCutoff( 1.9 );	    // cutoff of apodization
-	simParam.setApoBend( 0.8 );	    // exponent of apodization 
+	simParam.setApoCutoff( 2 );	    // cutoff of apodization
+	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
 	otf.setAttenuation( 0.995, 1.2 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
 	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used

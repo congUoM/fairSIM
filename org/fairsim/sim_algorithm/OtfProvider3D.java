@@ -159,7 +159,7 @@ public class OtfProvider3D {
 	    throw new IllegalStateException("Vector pixel size not initialized");
 	final int w = vec.vectorWidth(), h = vec.vectorHeight(), d = vec.vectorDepth();
 
-	//System.out.println(" Cycles: "+vecCyclesPerMicronLateral+" "+vecCyclesPerMicronAxial);
+	System.out.println(" Cycles: "+vecCyclesPerMicronLateral+" "+vecCyclesPerMicronAxial);
 
 	// loop output vector
 	new SimpleMT.StrPFor(0,d) {
@@ -333,10 +333,9 @@ public class OtfProvider3D {
      *  file. 
      *	@param cfg The config to load from
      *  */
-    @Deprecated
+    //@Deprecated
     public static OtfProvider3D loadFromConfig( Conf cfg ) 
 	throws Conf.EntryNotFoundException {
-
 	Conf.Folder fld = cfg.r().cd("otf3d");
 	return loadFromConfig( fld );
     }
@@ -347,7 +346,7 @@ public class OtfProvider3D {
      *  */
     public static OtfProvider3D loadFromConfig( Conf.Folder fld ) 
 	throws Conf.EntryNotFoundException {
-
+    	
 	OtfProvider3D ret = new OtfProvider3D();
 
 	// main parameters
@@ -391,6 +390,8 @@ public class OtfProvider3D {
 	// copy bands
 	for (int b=0; b<ret.maxBand; b++) {
 	    byte  [] bytes = data.getData(String.format("band-%d",b)).val();
+	    System.out.println(bytes.length);
+	    //System.out.println(bytes.toString().substring(0, 12));
 	    float [] val   = Conf.fromByte( bytes );
 	  
 	    if (val.length != 2*ret.samplesAxial * ret.samplesLateral )
@@ -400,7 +401,11 @@ public class OtfProvider3D {
 	    int i=0;
 	    for (int  z=0;  z< ret.samplesAxial   ;  z++)  
 	    for (int xy=0; xy< ret.samplesLateral ; xy++) { 
-		ret.vals[b].set(xy,z , new Cplx.Float( val[2*i], val[2*i+1]));	    
+		ret.vals[b].set(xy,z , new Cplx.Float( val[2*i], val[2*i+1]));
+		if (i == 0 && b == 0) {
+			System.out.println("val2i   = " + val[2*i]);
+			System.out.println("val2i+1 = " + val[2*i+1]);
+		}
 		i++;
 	    }
 	}
