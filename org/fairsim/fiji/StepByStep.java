@@ -55,9 +55,9 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 560;	    // emission wavelength		    
+	double emWavelen = 525;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
-	double otfCorr   = 0.31;    // OTF correction factor
+	double otfCorr   = 0.3;    // OTF correction factor
 	
 	OtfProvider otf = OtfProvider.fromEstimate( otfNA, emWavelen, otfCorr ); 
 	
@@ -77,7 +77,7 @@ public class StepByStep implements PlugIn {
     // 3 - create Vec2d.Cplx objects from the input images, window and fft them
 
 	Vec2d.Cplx [][] rawImages = new Vec2d.Cplx[ simParam.nrDir() ][ simParam.nrPha() ];
-	final double background = 200;   
+	final double background = 0;   
 	
 	for ( int ang = 0; ang < simParam.nrDir(); ang++) {
 	    for ( int pha = 0; pha < simParam.nrPha(); pha++) {
@@ -135,10 +135,10 @@ public class StepByStep implements PlugIn {
 
 	// Wiener filtering: set filter parameters
 	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
-	simParam.setApoCutoff( 1.9 );	    // cutoff of apodization
-	simParam.setApoBend( 0.8 );	    // exponent of apodization 
+	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
+	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
-	otf.setAttenuation( 0.995, 1.2 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
+	otf.setAttenuation( 0.9995, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
 	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used
 
 
@@ -169,6 +169,7 @@ public class StepByStep implements PlugIn {
 	// currently set up for 3 angles, 5 phases, just for testing
 	final int nrPhases = 5;
 	final int nrDir    = 3;
+	final int nrSlices = 53;
 
 	// currently selected stack, some basic checks
 	ImageStack inSt = ij.WindowManager.getCurrentImage().getStack();
@@ -177,33 +178,52 @@ public class StepByStep implements PlugIn {
 	    IJ.showMessage("Image not square (w!=h)");
 	    return;
 	}
-	if (inSt.getSize() != nrPhases*nrDir ) {
-	    IJ.showMessage("Stack length != phases*angles: "+inSt.getSize() );
+	if (inSt.getSize() != nrPhases*nrDir*nrSlices ) {
+	    IJ.showMessage("Stack length != phases*angles*nrSlices: "+inSt.getSize() );
 	    return;
 	}
 
 	// convert the stack into a short [][] to be compatible with our test function
-	short [][] imgs = new short[nrDir*nrPhases][];
+//	short [][][] imgs = new short[nrSlices][nrDir*nrPhases][];
+//
+//	Tool.trace("converting input stack to short []");
+//	for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
+//		for ( int i=0; i<nrDir*nrPhases; i++) {
+//		    imgs[sliceInd][i] = (short[])inSt.getProcessor(i+1).convertToShortProcessor().getPixels();
+//		}
+//	}
+	
+	short [][][] imgs = new short[nrSlices][nrDir*nrPhases][];
 
 	Tool.trace("converting input stack to short []");
-	for ( int i=0; i<nrDir*nrPhases; i++) {
-	    imgs[i] = (short[])inSt.getProcessor(i+1).convertToShortProcessor().getPixels();
+	int i = 0;
+	for ( int dirInd = 0; dirInd < nrDir; dirInd++) {
+		for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
+			for ( int phaseInd = 0; phaseInd < nrPhases; phaseInd++) {
+				imgs[sliceInd][dirInd*nrPhases+phaseInd] = (short[])inSt.getProcessor(i+1).convertToShortProcessor().getPixels();
+			    i++;
+			}
+		}
 	}
-
-	// start the reconstruction
-	Vec2d.Real res = stepByStepReconstruction( imgs );
-    
-	// convert the result into an ImageVector for displaying
-	ImageVector displayResult = ImageVector.create( res.vectorWidth(), res.vectorHeight());
-	displayResult.copy( res );
-	FloatProcessor fp = displayResult.img();
 	
-	// some settings to get a [0...max] scaling
-	fp.resetMinAndMax();
-	fp.setMinAndMax(0, fp.getMax());
-
+	ImageStack outStack = new ImageStack();
+	
+	// start the reconstruction
+	for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
+		Vec2d.Real res = stepByStepReconstruction( imgs[sliceInd] );
+		// convert the result into an ImageVector for displaying
+		ImageVector displayResult = ImageVector.create( res.vectorWidth(), res.vectorHeight());
+		displayResult.copy( res );
+		FloatProcessor fp = displayResult.img();
+		
+		// some settings to get a [0...max] scaling
+		fp.resetMinAndMax();
+		fp.setMinAndMax(0, fp.getMax());
+		outStack.addSlice(fp);
+	}
+    
 	// open the actual image display
-	ImagePlus ipl = new ImagePlus("reconstruction result", fp);
+	ImagePlus ipl = new ImagePlus("reconstruction result", outStack);
 	ipl.show();
     
     }
