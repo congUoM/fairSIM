@@ -39,10 +39,11 @@ import ij.process.FloatProcessor;
 /** Running a SIM reconstruction, step by step calling into high-level functions.
     This is not meant to be run unmodified, but as a working example starting point
     for your own scripts.*/
-public class StepByStep implements PlugIn {
+public class MultiOb2P implements PlugIn {
 
 
     static boolean doNotTryToFindK0 = false;
+    static boolean doAttenuation = true;  // use attenuation?
 
 
     /** runs the reconstruction step-by-step. Expects short [][] as input,
@@ -55,7 +56,7 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 525;	    // emission wavelength		    
+	double emWavelen = 515;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
 	double otfCorr   = 0.3;    // OTF correction factor
 	
@@ -68,8 +69,8 @@ public class StepByStep implements PlugIn {
 	int nrDirs   = 3;		    // #angles or pattern orientations
 	int nrPhases = 5;		    // #phases (at least 2*bands -1 )
 
-	double pxSize    = 0.080;	    // pixel size (microns)
-	int    imgSize   = 512;		    // size of the image (pixels)
+	double pxSize    = 0.025;	    // pixel size (microns)
+	int    imgSize   = 256;		    // size of the image (pixels)
 
 	SimParam simParam = SimParam.create( nrBands, nrDirs, nrPhases, imgSize, pxSize, otf  );
 
@@ -92,7 +93,7 @@ public class StepByStep implements PlugIn {
 		SimUtils.subtractBackground( rawImages[ang][pha], background );
 	
 		// apply simple windowing
-		SimUtils.fadeBorderCos( rawImages[ang][pha], 15 );
+		SimUtils.fadeBorderCos( rawImages[ang][pha], 10 );
 
 		// fft the vector
 		rawImages[ang][pha].fft2d( false );
@@ -134,12 +135,12 @@ public class StepByStep implements PlugIn {
 	final SimParam.CLIPSCALE clipOutput = SimParam.CLIPSCALE.NONE;
 
 	// Wiener filtering: set filter parameters
-	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
+	simParam.setWienerFilter( 0.000001 );   // wiener filter parameter
 	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
 	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
 	otf.setAttenuation( 0.9995, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
-	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used
+	otf.switchAttenuation( doAttenuation );
 
 
 	// run the actual reconstruction
@@ -169,7 +170,7 @@ public class StepByStep implements PlugIn {
 	// currently set up for 3 angles, 5 phases, just for testing
 	final int nrPhases = 5;
 	final int nrDir    = 3;
-	final int nrSlices = 53;
+	final int nrSlices = 256;
 
 	// currently selected stack, some basic checks
 	ImageStack inSt = ij.WindowManager.getCurrentImage().getStack();
@@ -206,12 +207,32 @@ public class StepByStep implements PlugIn {
 		}
 	}
 	
-	ImageStack outStack = new ImageStack();
+	
+	ImageStack  inStack = new ImageStack();
+	short[][] inImg = imgs[129];
+	// convert the result into an ImageVector for displaying
+	int cnt = 0;
+	for ( int dirInd = 0; dirInd < nrDir; dirInd++) {
+		for ( int phaseInd = 0; phaseInd < nrPhases; phaseInd++) {
+			ImageVector displayResult = ImageVector.copy( inImg[cnt], 256, 256 );
+			FloatProcessor fp = displayResult.img();
+			// some settings to get a [0...max] scaling
+			fp.resetMinAndMax();
+			fp.setMinAndMax(0, fp.getMax());
+			inStack.addSlice(fp);
+			cnt++;
+		}
+	}
+			
+	ImagePlus ip2 = new ImagePlus("input stack", inStack);
+	ip2.show();
+	
 	
 	// start the reconstruction
-	for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
-	//for ( int sliceInd = 50; sliceInd < nrSlices; sliceInd++) {
-		Vec2d.Real res = stepByStepReconstruction( imgs[sliceInd] );
+	ImageStack outStack = new ImageStack();
+	//for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
+	for ( int sliceInd = 129; sliceInd < 130; sliceInd++) {
+		Vec2d.Real res   = stepByStepReconstruction( imgs[sliceInd] );
 		// convert the result into an ImageVector for displaying
 		ImageVector displayResult = ImageVector.create( res.vectorWidth(), res.vectorHeight());
 		displayResult.copy( res );
@@ -248,7 +269,7 @@ public class StepByStep implements PlugIn {
 	ImagePlus ip = IJ.openImage(arg[0]);
 	ip.show();
 
-	StepByStep sbs = new StepByStep();
+	MultiOb2P sbs = new MultiOb2P();
 	sbs.run("");
     }
 

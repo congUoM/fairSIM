@@ -97,6 +97,15 @@ public class ImageVector extends AbstractVectorReal implements Vec2d.Real {
 		    ret.set( x, y, in.getf(x,y));
 	    return ret;
 	}
+	
+	/** Create an ImageVector, initialized to size and image in 'in' */
+	public static ImageVector copy( short[] in , int w, int h) {
+	    ImageVector ret = create(w,h);
+	    for (int y=0; y<h; y++)
+		for (int x=0; x<w; x++)
+		    ret.set( x, y, in[x*w+y]);
+	    return ret;
+	}
 
 	/** Return the FloatProcessor linked to this vector */
 	public FloatProcessor img() {
