@@ -49,27 +49,28 @@ public class TestPlugin implements PlugIn {
     int nrBands  = 3;		    // #bands (2 - two-beam, 3 - three-beam, ...)
     int nrDirs   = 3;		    // #angles or pattern orientations
     int nrPhases = 5;		    // #phases (at least 2*bands -1 )
+    int nrSlices = 256;
 
-    double emWavelen = 560;	    // emission wavelength		    
+    double emWavelen = 515;	    // emission wavelength		    
     double otfNA     = 1.4;	    // NA of objective
-    double otfCorr   = 0.31;	    // OTF correction factor
-    double pxSize    = 0.080;	    // pixel size (microns)
+    double otfCorr   = 0.3;	    // OTF correction factor
+    double pxSize    = 0.025;	    // pixel size (microns)
 
     double wienParam   = 0.05;	    // Wiener filter parameter
-    double attStrength = 0.995;	    // Strength of attenuation
-    double attFWHM     = 1.2;	    // FWHM of attenuation (cycles/micron)
+    double attStrength = 0.9995;	    // Strength of attenuation
+    double attFWHM     = 0.2;	    // FWHM of attenuation (cycles/micron)
     boolean doAttenuation = true;  // use attenuation?
 
     boolean otfBeforeShift = true;  // multiply the OTF before or after shift to px,py
 
-    boolean findPeak    = true;	    // run localization and fit of shfit vector
+    boolean findPeak    = false;	// run localization and fit of shfit vector
     boolean refinePhase = false;    // run auto-correlation phase estimation (Wicker et. al)
 	
-    final int visualFeedback = 2;   // amount of intermediate results to create (-1,0,1,2,3)
+    final int visualFeedback = -1;   // amount of intermediate results to create (-1,0,1,2,3)
     boolean doFastShift = true;     // use the fast fourier shift impl. or standard
     final double apoB=.9, apoF=2; // Bend and mag. factor of APO
 
-    final float background = 200;   // subtract constant background
+    final float background = 0;   // subtract constant background
 
 
     /** Called by Fiji to start the plugin. 
@@ -87,8 +88,8 @@ public class TestPlugin implements PlugIn {
 	    IJ.showMessage("Image not square (w!=h)");
 	    return;
 	}
-	if (inSt.getSize() != nrPhases*nrDirs ) {
-	    IJ.showMessage("Stack length != phases*angles: "+inSt.getSize() );
+	if (inSt.getSize() != nrPhases*nrDirs*nrSlices ) {
+	    IJ.showMessage("Stack length != phases*angles*nrSlices: "+inSt.getSize() );
 	    return;
 	}
 	
@@ -133,9 +134,18 @@ public class TestPlugin implements PlugIn {
 	
 	// green
 	if (true) {
-	    param.dir(0).setPxPy( 137.44, -140.91); 
-	    param.dir(1).setPxPy( -52.8,  -189.5);
-	    param.dir(2).setPxPy( 190.08,  49.96);
+	    param.dir(0).setPxPy(  0.0   , -27.7395 ); 
+	    param.dir(1).setPxPy( 24.0229, -13.8696 );
+	    param.dir(2).setPxPy( 24.0229,  13.8696 );
+	    param.dir(0).setModulation(0, 1.0);
+	    param.dir(0).setModulation(1, 0.8);
+	    param.dir(0).setModulation(2, 0.8);
+	    param.dir(1).setModulation(0, 1.0);
+	    param.dir(1).setModulation(1, 0.8);
+	    param.dir(1).setModulation(2, 0.8);
+	    param.dir(2).setModulation(0, 1.0);
+	    param.dir(2).setModulation(1, 0.8);
+	    param.dir(2).setModulation(2, 0.8);
 	}
 	// red
 	if (false) {
@@ -157,17 +167,21 @@ public class TestPlugin implements PlugIn {
 	tAll.start();
 
 	// Copy current stack into vectors, apotize borders 
-	Vec2d.Real [] imgs = new Vec2d.Real[ inSt.getSize() ]; 
-	for (int i=0; i<inSt.getSize();i++) { 
-	    imgs[i]  = ImageVector.copy( inSt.getProcessor(i+1) );
-	    imgs[i].addConst( -background ); 
-	    SimUtils.fadeBorderCos( imgs[i] , 10);
+	int sliceInd = 129;
+	Vec2d.Real [] imgs = new Vec2d.Real[ nrDirs*nrPhases ];
+	int cnt = 0;
+	for ( int dirInd = 0; dirInd < nrDirs; dirInd++) {
+		for ( int phaseInd = 0; phaseInd < nrPhases; phaseInd++) {
+			imgs[cnt]  = ImageVector.copy( inSt.getProcessor(dirInd*(nrSlices*nrPhases) + sliceInd*nrPhases+phaseInd+1) );
+		    imgs[cnt].addConst( -background ); 
+		    SimUtils.fadeBorderCos( imgs[cnt] , 10);
+		    cnt++;
+		}
 	}
 	
-
 	// compute the input FFT
-	Vec2d.Cplx [][] inFFT = new Vec2d.Cplx[ inSt.getSize()/nrPhases ][nrPhases];
-	for (int i=0; i<inSt.getSize();i++) { 
+	Vec2d.Cplx [][] inFFT = new Vec2d.Cplx[ nrDirs ][nrPhases];
+	for (int i=0; i<nrDirs*nrPhases;i++) { 
 		inFFT[i/nrPhases][i%nrPhases] = Vec2d.createCplx( w, h);
 		inFFT[i/nrPhases][i%nrPhases].copy( imgs[i] );
 		Transforms.fft2d( inFFT[i/nrPhases][i%nrPhases] , false);
