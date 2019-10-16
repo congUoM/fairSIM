@@ -42,7 +42,7 @@ import ij.process.FloatProcessor;
 public class StepByStep implements PlugIn {
 
 
-    static boolean doNotTryToFindK0 = false;
+    static boolean doNotTryToFindK0 = true;
 
 
     /** runs the reconstruction step-by-step. Expects short [][] as input,
@@ -116,13 +116,48 @@ public class StepByStep implements PlugIn {
 
 	// we need some default values (these are for the OMX U2OS example set) if we don't run the coarse estimation
 	if (doNotTryToFindK0) {
-	    simParam.dir(0).setPxPy( 137.44, -140.91); 
-	    simParam.dir(1).setPxPy( -52.8,  -189.5);
-	    simParam.dir(2).setPxPy( 190.08,  49.96);
-	}
+		// 3D params
+		if (false) {
+		    simParam.dir(0).setPxPy( 126.656 , -125.144); 
+		    simParam.dir(1).setPxPy( -44.8111, -172.567);
+		    simParam.dir(2).setPxPy( 171.278 ,   48.6333);
+		    simParam.dir(0).setModulation(0, 1.0);
+		    simParam.dir(0).setModulation(1, 0.8);
+		    simParam.dir(0).setModulation(2, 0.8);
+		    simParam.dir(1).setModulation(0, 1.0);
+		    simParam.dir(1).setModulation(1, 0.8);
+		    simParam.dir(1).setModulation(2, 0.8);
+		    simParam.dir(2).setModulation(0, 1.0);
+		    simParam.dir(2).setModulation(1, 0.8);
+		    simParam.dir(2).setModulation(2, 0.8);
+		    
+		    simParam.dir(0).setPhaOff(-7.79274e-01);
+		    simParam.dir(1).setPhaOff(-1.71138e+00);
+		    simParam.dir(2).setPhaOff(-2.19546e+00);
+		}
+	    
+	    // 2D params
+	    simParam.dir(0).setPxPy( 1.37411e+02, -1.40922e+02); 
+	    simParam.dir(1).setPxPy(-5.28778e+01, -1.89522e+02);
+	    simParam.dir(2).setPxPy( 1.90144e+02,  4.99889e+01);
+	    simParam.dir(0).setModulation(0, 1.0);
+	    simParam.dir(0).setModulation(1, 5.36570e-01);
+	    simParam.dir(0).setModulation(2, 6.93214e-01);
+	    simParam.dir(1).setModulation(0, 1.0);
+	    simParam.dir(1).setModulation(1, 5.14881e-02);
+	    simParam.dir(1).setModulation(2, 5.70836e-01);
+	    simParam.dir(2).setModulation(0, 1.0);
+	    simParam.dir(2).setModulation(1, 9.46642e-02);
+	    simParam.dir(2).setModulation(2, 6.01721e-01);
+	    
+	    simParam.dir(0).setPhaOff( 123.8723);
+	    simParam.dir(1).setPhaOff(-58.7706);
+	    simParam.dir(2).setPhaOff(-106.6750 );
+	} else {
 	
-	// run the actual parameter estimation
-	SimAlgorithm.estimateParameters( simParam, rawImages, fitBand, fitExclude, null, visualFeedback, null);
+		// run the actual parameter estimation
+		SimAlgorithm.estimateParameters( simParam, rawImages, fitBand, fitExclude, null, visualFeedback, null);
+	}
     
     // 5 -  run the reconstruction
 
@@ -210,7 +245,7 @@ public class StepByStep implements PlugIn {
 	
 	// start the reconstruction
 	for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
-	//for ( int sliceInd = 50; sliceInd < nrSlices; sliceInd++) {
+	//for ( int sliceInd = 6; sliceInd < 7; sliceInd++) {
 		Vec2d.Real res = stepByStepReconstruction( imgs[sliceInd] );
 		// convert the result into an ImageVector for displaying
 		ImageVector displayResult = ImageVector.create( res.vectorWidth(), res.vectorHeight());
