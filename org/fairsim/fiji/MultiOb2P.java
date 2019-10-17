@@ -129,13 +129,13 @@ public class MultiOb2P implements PlugIn {
 
 	// apply the OTF before or after Fourier-shifting the signal
 	// usually, applying it before the shift should work just fine
-	final boolean otfBeforeShift = false;
+	final boolean otfBeforeShift = true;
 	
 	// clip the output to [0..255] (clip&scale), to [0..max] (clip) or leave neg. values in (none)
 	final SimParam.CLIPSCALE clipOutput = SimParam.CLIPSCALE.NONE;
 
 	// Wiener filtering: set filter parameters
-	simParam.setWienerFilter( 0.000001 );   // wiener filter parameter
+	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
 	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
 	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
