@@ -356,7 +356,7 @@ public class FairSim3dGUI {
 		channelSelector.setSelectedIndex( chIdx );
 
 	    // Box tot select the OTF
-	    otfSelector = new Tiles.LComboBox< OtfProvider3D >( "OTF", 
+	    otfSelector = new Tiles.LComboBox( "OTF", 
 		    channelSelector.getSelectedItem().otfList.getArray());
 
 	    otfSelector.setSelectedIndex( otfIdx );
