@@ -39,10 +39,11 @@ import ij.process.FloatProcessor;
 /** Running a SIM reconstruction, step by step calling into high-level functions.
     This is not meant to be run unmodified, but as a working example starting point
     for your own scripts.*/
-public class StepByStep implements PlugIn {
+public class p4S6StarNew implements PlugIn {
 
 
     static boolean doNotTryToFindK0 = false;
+    static boolean doAttenuation = true;  // use attenuation?
 
 
     /** runs the reconstruction step-by-step. Expects short [][] as input,
@@ -55,7 +56,7 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 525;	    // emission wavelength		    
+	double emWavelen = 515;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
 	double otfCorr   = 0.3;    // OTF correction factor
 	
@@ -68,8 +69,8 @@ public class StepByStep implements PlugIn {
 	int nrDirs   = 3;		    // #angles or pattern orientations
 	int nrPhases = 5;		    // #phases (at least 2*bands -1 )
 
-	double pxSize    = 0.080;	    // pixel size (microns)
-	int    imgSize   = 512;		    // size of the image (pixels)
+	double pxSize    = 0.04;	    // pixel size (microns)
+	int    imgSize   = 256;		    // size of the image (pixels)
 
 	SimParam simParam = SimParam.create( nrBands, nrDirs, nrPhases, imgSize, pxSize, otf  );
 
@@ -92,7 +93,7 @@ public class StepByStep implements PlugIn {
 		SimUtils.subtractBackground( rawImages[ang][pha], background );
 	
 		// apply simple windowing
-		SimUtils.fadeBorderCos( rawImages[ang][pha], 15 );
+		SimUtils.fadeBorderCos( rawImages[ang][pha], 10 );
 
 		// fft the vector
 		rawImages[ang][pha].fft2d( false );
@@ -116,65 +117,31 @@ public class StepByStep implements PlugIn {
 
 	// we need some default values (these are for the OMX U2OS example set) if we don't run the coarse estimation
 	if (doNotTryToFindK0) {
-		// 3D params
-		if (false) {
-		    simParam.dir(0).setPxPy( 126.656 , -125.144); 
-		    simParam.dir(1).setPxPy( -44.8111, -172.567);
-		    simParam.dir(2).setPxPy( 171.278 ,   48.6333);
-		    simParam.dir(0).setModulation(0, 1.0);
-		    simParam.dir(0).setModulation(1, 0.8);
-		    simParam.dir(0).setModulation(2, 0.8);
-		    simParam.dir(1).setModulation(0, 1.0);
-		    simParam.dir(1).setModulation(1, 0.8);
-		    simParam.dir(1).setModulation(2, 0.8);
-		    simParam.dir(2).setModulation(0, 1.0);
-		    simParam.dir(2).setModulation(1, 0.8);
-		    simParam.dir(2).setModulation(2, 0.8);
-		    
-		    simParam.dir(0).setPhaOff(-7.79274e-01);
-		    simParam.dir(1).setPhaOff(-1.71138e+00);
-		    simParam.dir(2).setPhaOff(-2.19546e+00);
-		}
-	    
-	    // 2D params
-	    simParam.dir(0).setPxPy( 1.37411e+02, -1.40922e+02); 
-	    simParam.dir(1).setPxPy(-5.28778e+01, -1.89522e+02);
-	    simParam.dir(2).setPxPy( 1.90144e+02,  4.99889e+01);
-	    simParam.dir(0).setModulation(0, 1.0);
-	    simParam.dir(0).setModulation(1, 5.36570e-01);
-	    simParam.dir(0).setModulation(2, 6.93214e-01);
-	    simParam.dir(1).setModulation(0, 1.0);
-	    simParam.dir(1).setModulation(1, 5.14881e-02);
-	    simParam.dir(1).setModulation(2, 5.70836e-01);
-	    simParam.dir(2).setModulation(0, 1.0);
-	    simParam.dir(2).setModulation(1, 9.46642e-02);
-	    simParam.dir(2).setModulation(2, 6.01721e-01);
-	    
-	    simParam.dir(0).setPhaOff( 123.8723);
-	    simParam.dir(1).setPhaOff(-58.7706);
-	    simParam.dir(2).setPhaOff(-106.6750 );
-	} else {
-	
-		// run the actual parameter estimation
-		SimAlgorithm.estimateParameters( simParam, rawImages, fitBand, fitExclude, null, visualFeedback, null);
+	    simParam.dir(0).setPxPy( 137.44, -140.91); 
+	    simParam.dir(1).setPxPy( -52.8,  -189.5);
+	    simParam.dir(2).setPxPy( 190.08,  49.96);
 	}
+	
+	// run the actual parameter estimation
+	SimAlgorithm.estimateParameters( simParam, rawImages, fitBand, fitExclude, null, visualFeedback, null);
     
     // 5 -  run the reconstruction
 
 	// apply the OTF before or after Fourier-shifting the signal
 	// usually, applying it before the shift should work just fine
-	final boolean otfBeforeShift = true;
+	final boolean otfBeforeShift = false;
 	
 	// clip the output to [0..255] (clip&scale), to [0..max] (clip) or leave neg. values in (none)
 	final SimParam.CLIPSCALE clipOutput = SimParam.CLIPSCALE.NONE;
 
 	// Wiener filtering: set filter parameters
-	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
+	simParam.setWienerFilter( 0.005 );   // wiener filter parameter
 	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
 	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
-	otf.setAttenuation( 0.9995, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
-	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used
+	otf.setAttenuation( 0.9999, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
+	//otf.setAttenuation( 0.99, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
+	otf.switchAttenuation( doAttenuation );
 
 
 	// run the actual reconstruction
@@ -204,7 +171,7 @@ public class StepByStep implements PlugIn {
 	// currently set up for 3 angles, 5 phases, just for testing
 	final int nrPhases = 5;
 	final int nrDir    = 3;
-	final int nrSlices = 53;
+	final int nrSlices = 256;
 
 	// currently selected stack, some basic checks
 	ImageStack inSt = ij.WindowManager.getCurrentImage().getStack();
@@ -241,12 +208,32 @@ public class StepByStep implements PlugIn {
 		}
 	}
 	
-	ImageStack outStack = new ImageStack();
+	
+	ImageStack  inStack = new ImageStack();
+	short[][] inImg = imgs[129];
+	// convert the result into an ImageVector for displaying
+	int cnt = 0;
+	for ( int dirInd = 0; dirInd < nrDir; dirInd++) {
+		for ( int phaseInd = 0; phaseInd < nrPhases; phaseInd++) {
+			ImageVector displayResult = ImageVector.copy( inImg[cnt], 256, 256 );
+			FloatProcessor fp = displayResult.img();
+			// some settings to get a [0...max] scaling
+			fp.resetMinAndMax();
+			fp.setMinAndMax(0, fp.getMax());
+			inStack.addSlice(fp);
+			cnt++;
+		}
+	}
+			
+	ImagePlus ip2 = new ImagePlus("input stack", inStack);
+	ip2.show();
+	
 	
 	// start the reconstruction
+	ImageStack outStack = new ImageStack();
 	for ( int sliceInd = 0; sliceInd < nrSlices; sliceInd++) {
-	//for ( int sliceInd = 6; sliceInd < 7; sliceInd++) {
-		Vec2d.Real res = stepByStepReconstruction( imgs[sliceInd] );
+	//for ( int sliceInd = 129; sliceInd < 130; sliceInd++) {
+		Vec2d.Real res   = stepByStepReconstruction( imgs[sliceInd] );
 		// convert the result into an ImageVector for displaying
 		ImageVector displayResult = ImageVector.create( res.vectorWidth(), res.vectorHeight());
 		displayResult.copy( res );
@@ -283,7 +270,7 @@ public class StepByStep implements PlugIn {
 	ImagePlus ip = IJ.openImage(arg[0]);
 	ip.show();
 
-	StepByStep sbs = new StepByStep();
+	p4S6StarNew sbs = new p4S6StarNew();
 	sbs.run("");
     }
 

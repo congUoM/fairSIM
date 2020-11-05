@@ -39,10 +39,10 @@ import ij.process.FloatProcessor;
 /** Running a SIM reconstruction, step by step calling into high-level functions.
     This is not meant to be run unmodified, but as a working example starting point
     for your own scripts.*/
-public class StepByStep implements PlugIn {
+public class LSECMembrane implements PlugIn {
 
 
-    static boolean doNotTryToFindK0 = false;
+    static boolean doNotTryToFindK0 = true;
 
 
     /** runs the reconstruction step-by-step. Expects short [][] as input,
@@ -55,7 +55,7 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 525;	    // emission wavelength		    
+	double emWavelen = 680;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
 	double otfCorr   = 0.3;    // OTF correction factor
 	
@@ -77,7 +77,7 @@ public class StepByStep implements PlugIn {
     // 3 - create Vec2d.Cplx objects from the input images, window and fft them
 
 	Vec2d.Cplx [][] rawImages = new Vec2d.Cplx[ simParam.nrDir() ][ simParam.nrPha() ];
-	final double background = 0;   
+	final double background = 350;   
 	
 	for ( int ang = 0; ang < simParam.nrDir(); ang++) {
 	    for ( int pha = 0; pha < simParam.nrPha(); pha++) {
@@ -137,22 +137,22 @@ public class StepByStep implements PlugIn {
 		}
 	    
 	    // 2D params
-	    simParam.dir(0).setPxPy( 1.37411e+02, -1.40922e+02); 
-	    simParam.dir(1).setPxPy(-5.28778e+01, -1.89522e+02);
-	    simParam.dir(2).setPxPy( 1.90144e+02,  4.99889e+01);
+	    simParam.dir(0).setPxPy( 1.37433e+02, -1.40900e+02); 
+	    simParam.dir(1).setPxPy(-5.28556e+01, -1.89478e+02);
+	    simParam.dir(2).setPxPy( 1.90078e+02,  4.99667e+01);
 	    simParam.dir(0).setModulation(0, 1.0);
-	    simParam.dir(0).setModulation(1, 5.36570e-01);
-	    simParam.dir(0).setModulation(2, 6.93214e-01);
+	    simParam.dir(0).setModulation(1, 2.65786e-01);
+	    simParam.dir(0).setModulation(2, 7.25960e-01);
 	    simParam.dir(1).setModulation(0, 1.0);
-	    simParam.dir(1).setModulation(1, 5.14881e-02);
-	    simParam.dir(1).setModulation(2, 5.70836e-01);
+	    simParam.dir(1).setModulation(1, 5.28290e-01);
+	    simParam.dir(1).setModulation(2, 7.86318e-01);
 	    simParam.dir(2).setModulation(0, 1.0);
-	    simParam.dir(2).setModulation(1, 9.46642e-02);
-	    simParam.dir(2).setModulation(2, 6.01721e-01);
+	    simParam.dir(2).setModulation(1, 5.70461e-01);
+	    simParam.dir(2).setModulation(2, 6.76972e-01);
 	    
-	    simParam.dir(0).setPhaOff( 123.8723);
-	    simParam.dir(1).setPhaOff(-58.7706);
-	    simParam.dir(2).setPhaOff(-106.6750 );
+	    simParam.dir(0).setPhaOff( 8.86435e-01);
+	    simParam.dir(1).setPhaOff( 2.76946e+00);
+	    simParam.dir(2).setPhaOff( 1.87208e+00);
 	} else {
 	
 		// run the actual parameter estimation
@@ -173,7 +173,7 @@ public class StepByStep implements PlugIn {
 	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
 	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
-	otf.setAttenuation( 0.9995, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
+	otf.setAttenuation( 0.995, 1.2 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
 	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used
 
 
@@ -204,7 +204,7 @@ public class StepByStep implements PlugIn {
 	// currently set up for 3 angles, 5 phases, just for testing
 	final int nrPhases = 5;
 	final int nrDir    = 3;
-	final int nrSlices = 53;
+	final int nrSlices = 13;
 
 	// currently selected stack, some basic checks
 	ImageStack inSt = ij.WindowManager.getCurrentImage().getStack();
@@ -283,7 +283,7 @@ public class StepByStep implements PlugIn {
 	ImagePlus ip = IJ.openImage(arg[0]);
 	ip.show();
 
-	StepByStep sbs = new StepByStep();
+	LSECMembrane sbs = new LSECMembrane();
 	sbs.run("");
     }
 

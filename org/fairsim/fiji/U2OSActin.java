@@ -39,7 +39,7 @@ import ij.process.FloatProcessor;
 /** Running a SIM reconstruction, step by step calling into high-level functions.
     This is not meant to be run unmodified, but as a working example starting point
     for your own scripts.*/
-public class StepByStep implements PlugIn {
+public class U2OSActin implements PlugIn {
 
 
     static boolean doNotTryToFindK0 = false;
@@ -283,7 +283,7 @@ public class StepByStep implements PlugIn {
 	ImagePlus ip = IJ.openImage(arg[0]);
 	ip.show();
 
-	StepByStep sbs = new StepByStep();
+	U2OSActin sbs = new U2OSActin();
 	sbs.run("");
     }
 

@@ -39,7 +39,7 @@ import ij.process.FloatProcessor;
 /** Running a SIM reconstruction, step by step calling into high-level functions.
     This is not meant to be run unmodified, but as a working example starting point
     for your own scripts.*/
-public class StepByStep implements PlugIn {
+public class ValenciaImages_110520 implements PlugIn {
 
 
     static boolean doNotTryToFindK0 = false;
@@ -55,21 +55,21 @@ public class StepByStep implements PlugIn {
 
     // 1 - estimate an OTF. Alternatively, this could be loaded from an xml file
 
-	double emWavelen = 525;	    // emission wavelength		    
+	double emWavelen = 530;	    // emission wavelength		    
 	double otfNA     = 1.4;	    // NA of objective
-	double otfCorr   = 0.3;    // OTF correction factor
+	double otfCorr   = 0.1;    // OTF correction factor
 	
 	OtfProvider otf = OtfProvider.fromEstimate( otfNA, emWavelen, otfCorr ); 
 	
 
     // 2 - create a 'SimParam' instance that will hold all the reconstruction parameters
     
-	int nrBands  = 3;		    // #bands (2 - two-beam, 3 - three-beam, ...)
-	int nrDirs   = 3;		    // #angles or pattern orientations
-	int nrPhases = 5;		    // #phases (at least 2*bands -1 )
+	int nrBands  = 2;		    // #bands (2 - two-beam, 3 - three-beam, ...)
+	int nrDirs   = 1;		    // #angles or pattern orientations
+	int nrPhases = 3;		    // #phases (at least 2*bands -1 )
 
-	double pxSize    = 0.080;	    // pixel size (microns)
-	int    imgSize   = 512;		    // size of the image (pixels)
+	double pxSize    = 0.0542;	    // pixel size (microns)
+	int    imgSize   = 2048;		    // size of the image (pixels)
 
 	SimParam simParam = SimParam.create( nrBands, nrDirs, nrPhases, imgSize, pxSize, otf  );
 
@@ -137,22 +137,22 @@ public class StepByStep implements PlugIn {
 		}
 	    
 	    // 2D params
-	    simParam.dir(0).setPxPy( 1.37411e+02, -1.40922e+02); 
-	    simParam.dir(1).setPxPy(-5.28778e+01, -1.89522e+02);
-	    simParam.dir(2).setPxPy( 1.90144e+02,  4.99889e+01);
+	    simParam.dir(0).setPxPy( 1.37433e+02, -1.40900e+02); 
+	    simParam.dir(1).setPxPy(-5.28556e+01, -1.89478e+02);
+	    simParam.dir(2).setPxPy( 1.90078e+02,  4.99667e+01);
 	    simParam.dir(0).setModulation(0, 1.0);
-	    simParam.dir(0).setModulation(1, 5.36570e-01);
-	    simParam.dir(0).setModulation(2, 6.93214e-01);
+	    simParam.dir(0).setModulation(1, 2.65786e-01);
+	    simParam.dir(0).setModulation(2, 7.25960e-01);
 	    simParam.dir(1).setModulation(0, 1.0);
-	    simParam.dir(1).setModulation(1, 5.14881e-02);
-	    simParam.dir(1).setModulation(2, 5.70836e-01);
+	    simParam.dir(1).setModulation(1, 5.28290e-01);
+	    simParam.dir(1).setModulation(2, 7.86318e-01);
 	    simParam.dir(2).setModulation(0, 1.0);
-	    simParam.dir(2).setModulation(1, 9.46642e-02);
-	    simParam.dir(2).setModulation(2, 6.01721e-01);
+	    simParam.dir(2).setModulation(1, 5.70461e-01);
+	    simParam.dir(2).setModulation(2, 6.76972e-01);
 	    
-	    simParam.dir(0).setPhaOff( 123.8723);
-	    simParam.dir(1).setPhaOff(-58.7706);
-	    simParam.dir(2).setPhaOff(-106.6750 );
+	    simParam.dir(0).setPhaOff( 8.86435e-01);
+	    simParam.dir(1).setPhaOff( 2.76946e+00);
+	    simParam.dir(2).setPhaOff( 1.87208e+00);
 	} else {
 	
 		// run the actual parameter estimation
@@ -169,11 +169,11 @@ public class StepByStep implements PlugIn {
 	final SimParam.CLIPSCALE clipOutput = SimParam.CLIPSCALE.NONE;
 
 	// Wiener filtering: set filter parameters
-	simParam.setWienerFilter( 0.05 );   // wiener filter parameter
+	simParam.setWienerFilter( 0.5 );   // wiener filter parameter
 	simParam.setApoCutoff( 2.0 );	    // cutoff of apodization
 	simParam.setApoBend( 0.9 );	    // exponent of apodization 
 	
-	otf.setAttenuation( 0.9995, 2.0 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
+	otf.setAttenuation( 0.9999, 1.2 );   // set strength (0..1) and FWHM (in 1/micron) of OTF attenuation
 	otf.switchAttenuation( true );	    // important: has to be 'true', otherwise no attenuation gets used
 
 
@@ -202,9 +202,9 @@ public class StepByStep implements PlugIn {
     public void run(String arg) {
 
 	// currently set up for 3 angles, 5 phases, just for testing
-	final int nrPhases = 5;
-	final int nrDir    = 3;
-	final int nrSlices = 53;
+	final int nrPhases = 3;
+	final int nrDir    = 1;
+	final int nrSlices = 1;
 
 	// currently selected stack, some basic checks
 	ImageStack inSt = ij.WindowManager.getCurrentImage().getStack();
@@ -283,7 +283,7 @@ public class StepByStep implements PlugIn {
 	ImagePlus ip = IJ.openImage(arg[0]);
 	ip.show();
 
-	StepByStep sbs = new StepByStep();
+	ValenciaImages_110520 sbs = new ValenciaImages_110520();
 	sbs.run("");
     }
 
